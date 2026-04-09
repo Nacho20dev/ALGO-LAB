@@ -112,29 +112,59 @@
         </section>
     </main>
 
-    <script type="module">
-        import { diarioClases } from './js/data/apuntes.js';
+   <script type="module">
+    // 1. IMPORTAMOS FIREBASE DESDE LA CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { diarioClases } from './js/data/apuntes.js';
 
-        const themeToggle = document.getElementById('themeToggle');
-        const applyTheme = () => {
-            const saved = localStorage.getItem('theme') || 'dark';
-            document.documentElement.classList.toggle('dark', saved === 'dark');
-        };
-        themeToggle.onclick = () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        };
-        applyTheme();
+    // TU CONFIGURACIÓN (Mantenemos la que pegaste antes)
+    const firebaseConfig = {
+        apiKey: "AIzaSyACn1WsQF2--cd_NT71D1GplZTuc2qu8cI",
+        authDomain: "algo-lab-6ebad.firebaseapp.com",
+        projectId: "algo-lab-6ebad",
+        storageBucket: "algo-lab-6ebad.firebasestorage.app",
+        messagingSenderId: "141165248345",
+        appId: "1:141165248345:web:23dad0ce60ca1d8e449648",
+        measurementId: "G-BYEM8M9ZJ0"
+    };
 
-        (function render() {
-            const grid = document.getElementById('notes-grid');
-            const localNotes = JSON.parse(localStorage.getItem('algo_lab_notes')) || [];
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // LÓGICA DE TEMA (Mantenemos la tuya)
+    const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = () => {
+        const saved = localStorage.getItem('theme') || 'dark';
+        document.documentElement.classList.toggle('dark', saved === 'dark');
+    };
+    themeToggle.onclick = () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    };
+    applyTheme();
+
+    // RENDERIZADO DESDE FIREBASE
+    async function render() {
+        const grid = document.getElementById('notes-grid');
+        grid.innerHTML = '<p class="col-span-full text-center opacity-30 italic animate-pulse">Syncing with Cloud Database...</p>';
+
+        try {
+            // Traemos las notas de la nube ordenadas por ID descendente
+            const q = query(collection(db, "clases"), orderBy("id", "desc"));
+            const querySnapshot = await getDocs(q);
+            const cloudNotes = [];
+            querySnapshot.forEach((doc) => cloudNotes.push(doc.data()));
+
+            // Combinamos con las del JS local (opcional) para no perder nada
             const notesMap = new Map();
             diarioClases.forEach(n => notesMap.set(n.id, n));
-            localNotes.forEach(ln => notesMap.set(ln.id, ln));
+            cloudNotes.forEach(cn => notesMap.set(cn.id, cn));
+            
             const allNotes = Array.from(notesMap.values()).sort((a,b) => b.id - a.id);
             grid.innerHTML = '';
 
+            // Botón "+" para nueva nota
             const nextId = allNotes.length > 0 ? Math.max(...allNotes.map(n => n.id)) + 1 : 1;
             const addCard = document.createElement('a');
             addCard.href = `pages/apuntes.html?id=${nextId}&mode=edit`;
@@ -142,6 +172,7 @@
             addCard.innerHTML = `<span class="text-4xl">+</span>`;
             grid.appendChild(addCard);
 
+            // Renderizamos cada card
             allNotes.forEach(clase => {
                 const card = document.createElement('a');
                 card.href = `pages/apuntes.html?id=${clase.id}`;
@@ -160,7 +191,13 @@
                 `;
                 grid.appendChild(card);
             });
-        })();
-    </script>
+        } catch (e) {
+            console.error(e);
+            grid.innerHTML = '<p class="col-span-full text-center text-javaRed font-black">ERROR_DB_SYNC_FAILED</p>';
+        }
+    }
+
+    render();
+</script>
 </body>
 </html>
