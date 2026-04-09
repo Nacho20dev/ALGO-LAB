@@ -93,34 +93,68 @@
     </main>
 
     <script type="module">
+        // 1. IMPORTACIONES FIREBASE
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { diarioClases } from '../js/data/apuntes.js';
+
         const { jsPDF } = window.jspdf;
 
-        // --- CARGA DINÁMICA ---
+        // 2. CONFIGURACIÓN FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyACn1WsQF2--cd_NT71D1GplZTuc2qu8cI",
+            authDomain: "algo-lab-6ebad.firebaseapp.com",
+            projectId: "algo-lab-6ebad",
+            storageBucket: "algo-lab-6ebad.firebasestorage.app",
+            messagingSenderId: "141165248345",
+            appId: "1:141165248345:web:23dad0ce60ca1d8e449648",
+            measurementId: "G-BYEM8M9ZJ0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 3. PARÁMETROS URL
         const params = new URLSearchParams(window.location.search);
         const claseId = parseInt(params.get('id'));
         const mode = params.get('mode');
 
-        const localNotes = JSON.parse(localStorage.getItem('algo_lab_notes')) || [];
-        let claseData = localNotes.find(n => n.id === claseId) || diarioClases.find(c => c.id === claseId);
+        // 4. CARGA DE DATOS (NUBE + LOCAL)
+        async function loadData() {
+            try {
+                const docRef = doc(db, "clases", String(claseId));
+                const docSnap = await getDoc(docRef);
 
-        if (claseData) {
-            document.getElementById('clase-id').innerText = `#${String(claseData.id).padStart(2, '0')}`;
-            document.getElementById('clase-fecha').innerText = (claseData.fecha || "LOG_ENTRY").toUpperCase();
-            document.getElementById('clase-titulo').innerText = claseData.titulo;
-            document.getElementById('clase-tags').innerText = Array.isArray(claseData.tags) ? claseData.tags.join(' ') : claseData.tags;
-            document.getElementById('clase-resumen').innerText = claseData.resumen;
-            document.getElementById('clase-codigo').innerText = claseData.codigo;
-            document.getElementById('clase-joya').innerText = claseData.joya;
-        } else {
-            document.getElementById('clase-id').innerText = `#${String(claseId).padStart(2, '0')}`;
-            document.getElementById('clase-titulo').innerText = "NUEVA_ENTRADA_LOG";
+                let data = null;
+                if (docSnap.exists()) {
+                    data = docSnap.data();
+                } else {
+                    data = diarioClases.find(c => c.id === claseId);
+                }
+
+                if (data) {
+                    document.getElementById('clase-id').innerText = `#${String(data.id).padStart(2, '0')}`;
+                    document.getElementById('clase-fecha').innerText = (data.fecha || "LOG_ENTRY").toUpperCase();
+                    document.getElementById('clase-titulo').innerText = data.titulo;
+                    document.getElementById('clase-tags').innerText = Array.isArray(data.tags) ? data.tags.join(' ') : data.tags;
+                    document.getElementById('clase-resumen').innerText = data.resumen;
+                    document.getElementById('clase-codigo').innerText = data.codigo;
+                    document.getElementById('clase-joya').innerText = data.joya;
+                } else {
+                    document.getElementById('clase-id').innerText = `#${String(claseId).padStart(2, '0')}`;
+                    document.getElementById('clase-titulo').innerText = "NUEVA_ENTRADA_LOG";
+                }
+
+                if(mode === 'edit') toggleEdit(true);
+
+            } catch (error) {
+                console.error("Error cargando:", error);
+            }
         }
 
-        // Si entramos en modo edit desde el index
-        if(mode === 'edit') setTimeout(() => toggleEdit(true), 500);
+        loadData();
 
-        // --- TEMA ---
+        // 5. TEMA
         const themeToggle = document.getElementById('themeToggle');
         themeToggle.onclick = () => {
             const isDark = document.documentElement.classList.toggle('dark');
@@ -128,7 +162,7 @@
             themeToggle.innerText = isDark ? '☀️' : '🌙';
         };
 
-        // --- EDICIÓN ---
+        // 6. EDICIÓN Y GUARDADO EN CLOUD
         const fields = ['titulo', 'resumen', 'codigo', 'joya', 'fecha', 'tags'];
         const btnEdit = document.getElementById('btn-edit');
         const btnSave = document.getElementById('btn-save');
@@ -146,7 +180,10 @@
 
         btnEdit.onclick = () => toggleEdit(true);
 
-        btnSave.onclick = () => {
+        btnSave.onclick = async () => {
+            btnSave.innerText = "Sincronizando...";
+            btnSave.disabled = true;
+
             const updated = {
                 id: claseId,
                 fecha: document.getElementById('clase-fecha').innerText,
@@ -157,36 +194,48 @@
                 joya: document.getElementById('clase-joya').innerText
             };
 
-            let currentLocal = JSON.parse(localStorage.getItem('algo_lab_notes')) || [];
-            const idx = currentLocal.findIndex(n => n.id === claseId);
-            if(idx > -1) currentLocal[idx] = updated;
-            else currentLocal.push(updated);
-            
-            localStorage.setItem('algo_lab_notes', JSON.stringify(currentLocal));
-            toggleEdit(false);
-            alert("LOG_SAVED: Cambios en memoria local.");
-        };
-
-        document.getElementById('btn-delete').onclick = () => {
-            if(confirm("¿Eliminar registro?")) {
-                let currentLocal = JSON.parse(localStorage.getItem('algo_lab_notes')) || [];
-                localStorage.setItem('algo_lab_notes', JSON.stringify(currentLocal.filter(n => n.id !== claseId)));
-                window.location.href = '../index.html';
+            try {
+                await setDoc(doc(db, "clases", String(claseId)), updated);
+                toggleEdit(false);
+                btnSave.innerText = "Save_Changes";
+                btnSave.disabled = false;
+                alert("LOG_SAVED: Datos actualizados en Firebase.");
+            } catch (e) {
+                console.error(e);
+                alert("Error al guardar.");
+                btnSave.innerText = "Save_Changes";
+                btnSave.disabled = false;
             }
         };
 
-        // --- PDF ---
+        // 7. ELIMINAR
+        document.getElementById('btn-delete').onclick = async () => {
+            if(confirm("¿Eliminar de la nube permanentemente?")) {
+                try {
+                    await deleteDoc(doc(db, "clases", String(claseId)));
+                    window.location.href = '../index.html';
+                } catch (e) {
+                    alert("Error al eliminar.");
+                }
+            }
+        };
+
+        // 8. PDF
         document.getElementById('btn-pdf-pro').onclick = () => {
-            const doc = new jsPDF();
+            const docPDF = new jsPDF();
             const isDark = document.documentElement.classList.contains('dark');
-            doc.setFillColor(isDark ? 10 : 250);
-            doc.rect(0,0,210,297,'F');
-            doc.setTextColor(isDark ? 255 : 0);
-            doc.setFontSize(20);
-            doc.text(document.getElementById('clase-titulo').innerText, 20, 40);
-            doc.setFontSize(10);
-            doc.text(document.getElementById('clase-resumen').innerText, 20, 60, {maxWidth: 170});
-            doc.save(`AlgoLab_Log_${claseId}.pdf`);
+            
+            docPDF.setFillColor(isDark ? 30 : 255);
+            docPDF.rect(0, 0, 210, 297, 'F');
+            docPDF.setTextColor(isDark ? 255 : 0);
+            
+            docPDF.setFontSize(22);
+            docPDF.text("ALGO::LAB | Engineering Log", 20, 30);
+            docPDF.setFontSize(18);
+            docPDF.text(document.getElementById('clase-titulo').innerText, 20, 50);
+            docPDF.setFontSize(10);
+            docPDF.text(document.getElementById('clase-resumen').innerText, 20, 70, {maxWidth: 170});
+            docPDF.save(`AlgoLab_Log_${claseId}.pdf`);
         };
     </script>
 </body>
