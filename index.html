@@ -113,12 +113,10 @@
     </main>
 
    <script type="module">
-    // 1. IMPORTAMOS FIREBASE DESDE LA CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import { diarioClases } from './js/data/apuntes.js';
 
-    // TU CONFIGURACIÓN (Mantenemos la que pegaste antes)
     const firebaseConfig = {
         apiKey: "AIzaSyACn1WsQF2--cd_NT71D1GplZTuc2qu8cI",
         authDomain: "algo-lab-6ebad.firebaseapp.com",
@@ -132,7 +130,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // LÓGICA DE TEMA (Mantenemos la tuya)
     const themeToggle = document.getElementById('themeToggle');
     const applyTheme = () => {
         const saved = localStorage.getItem('theme') || 'dark';
@@ -144,38 +141,38 @@
     };
     applyTheme();
 
-    // RENDERIZADO DESDE FIREBASE
     async function render() {
         const grid = document.getElementById('notes-grid');
         grid.innerHTML = '<p class="col-span-full text-center opacity-30 italic animate-pulse">Syncing with Cloud Database...</p>';
 
         try {
-            // Traemos las notas de la nube ordenadas por ID descendente
             const q = query(collection(db, "clases"), orderBy("id", "desc"));
             const querySnapshot = await getDocs(q);
             const cloudNotes = [];
             querySnapshot.forEach((doc) => cloudNotes.push(doc.data()));
 
-            // Combinamos con las del JS local (opcional) para no perder nada
             const notesMap = new Map();
+            // Primero cargamos las locales para que la nube siempre tenga la última palabra (override)
             diarioClases.forEach(n => notesMap.set(n.id, n));
             cloudNotes.forEach(cn => notesMap.set(cn.id, cn));
             
             const allNotes = Array.from(notesMap.values()).sort((a,b) => b.id - a.id);
             grid.innerHTML = '';
 
-            // Botón "+" para nueva nota
-            const nextId = allNotes.length > 0 ? Math.max(...allNotes.map(n => n.id)) + 1 : 1;
+            // BOTÓN "+" CORREGIDO
+            const maxId = allNotes.length > 0 ? Math.max(...allNotes.map(n => n.id)) : 0;
+            const nextId = maxId + 1;
+            
             const addCard = document.createElement('a');
-            addCard.href = `pages/apuntes.html?id=${nextId}&mode=edit`;
+            // Usamos ruta absoluta al servidor local para evitar errores de carpeta
+            addCard.href = `./pages/apuntes.html?id=${nextId}&mode=edit`;
             addCard.className = "card-glass p-10 rounded-[2.5rem] flex items-center justify-center border-dashed border-2 border-zinc-300 dark:border-zinc-800 text-zinc-400 hover:border-javaRed hover:text-javaRed hover:scale-105 transition-all min-h-[250px]";
-            addCard.innerHTML = `<span class="text-4xl">+</span>`;
+            addCard.innerHTML = `<span class="text-6xl font-light">+</span>`;
             grid.appendChild(addCard);
 
-            // Renderizamos cada card
             allNotes.forEach(clase => {
                 const card = document.createElement('a');
-                card.href = `pages/apuntes.html?id=${clase.id}`;
+                card.href = `./pages/apuntes.html?id=${clase.id}`;
                 card.className = "card-glass p-8 rounded-[2.5rem] group hover:scale-[1.02] flex flex-col justify-between min-h-[250px]";
                 card.innerHTML = `
                     <div>
@@ -192,7 +189,7 @@
                 grid.appendChild(card);
             });
         } catch (e) {
-            console.error(e);
+            console.error("Error en Render:", e);
             grid.innerHTML = '<p class="col-span-full text-center text-javaRed font-black">ERROR_DB_SYNC_FAILED</p>';
         }
     }
