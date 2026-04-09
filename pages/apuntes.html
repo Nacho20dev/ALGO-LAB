@@ -221,22 +221,94 @@
         };
 
         // 8. PDF
-        document.getElementById('btn-pdf-pro').onclick = () => {
-            const docPDF = new jsPDF();
-            const isDark = document.documentElement.classList.contains('dark');
-            
-            docPDF.setFillColor(isDark ? 30 : 255);
-            docPDF.rect(0, 0, 210, 297, 'F');
-            docPDF.setTextColor(isDark ? 255 : 0);
-            
-            docPDF.setFontSize(22);
-            docPDF.text("ALGO::LAB | Engineering Log", 20, 30);
-            docPDF.setFontSize(18);
-            docPDF.text(document.getElementById('clase-titulo').innerText, 20, 50);
-            docPDF.setFontSize(10);
-            docPDF.text(document.getElementById('clase-resumen').innerText, 20, 70, {maxWidth: 170});
-            docPDF.save(`AlgoLab_Log_${claseId}.pdf`);
-        };
+      // 8. PDF DRAWING ENGINE (Texto real, no captura)
+document.getElementById('btn-pdf-pro').onclick = () => {
+    const docPDF = new jsPDF();
+    const isDark = document.documentElement.classList.contains('dark');
+    
+    // Configuración de Colores según el tema
+    const bgColor = isDark ? [24, 24, 27] : [250, 250, 250]; // zinc-950 o zinc-50
+    const textColor = isDark ? [255, 255, 255] : [24, 24, 27];
+    const accentColor = [231, 20, 13]; // javaRed (#E7140D)
+
+    // 1. Fondo de página
+    docPDF.setFillColor(...bgColor);
+    docPDF.rect(0, 0, 210, 297, 'F');
+
+    // 2. Cabecera - Logo / ID
+    docPDF.setFont("helvetica", "bold");
+    docPDF.setFontSize(10);
+    docPDF.setTextColor(...accentColor);
+    const idText = document.getElementById('clase-id').innerText;
+    docPDF.text(idText, 20, 20);
+
+    // Línea decorativa
+    docPDF.setDrawColor(isDark ? 60 : 200);
+    docPDF.line(30, 19, 150, 19);
+
+    // Fecha
+    docPDF.setTextColor(150, 150, 150);
+    docPDF.setFontSize(8);
+    const fecha = document.getElementById('clase-fecha').innerText;
+    docPDF.text(fecha, 160, 20);
+
+    // 3. Título Principal
+    docPDF.setFontSize(32);
+    docPDF.setTextColor(...textColor);
+    docPDF.setFont("helvetica", "bold");
+    const titulo = document.getElementById('clase-titulo').innerText.toUpperCase();
+    // Dividir título si es muy largo
+    const splitTitle = docPDF.splitTextToSize(titulo, 170);
+    docPDF.text(splitTitle, 20, 40);
+
+    // 4. Tags
+    docPDF.setFontSize(9);
+    docPDF.setTextColor(0, 115, 183); // javaBlue
+    const tags = document.getElementById('clase-tags').innerText;
+    docPDF.text(tags, 20, 60);
+
+    // 5. Resumen (Technical Briefing)
+    docPDF.setTextColor(150, 150, 150);
+    docPDF.text("TECHNICAL_BRIEFING", 20, 75);
+    
+    docPDF.setTextColor(...textColor);
+    docPDF.setFont("helvetica", "normal");
+    docPDF.setFontSize(12);
+    const resumen = document.getElementById('clase-resumen').innerText;
+    const splitResumen = docPDF.splitTextToSize(resumen, 170);
+    docPDF.text(splitResumen, 20, 85);
+
+    // 6. Bloque de Código (Simulando la caja oscura)
+    const codeY = 110;
+    docPDF.setFillColor(9, 9, 11); // Fondo código (zinc-950)
+    docPDF.roundedRect(20, codeY, 170, 80, 5, 5, 'F');
+    
+    docPDF.setFont("courier", "normal");
+    docPDF.setFontSize(10);
+    docPDF.setTextColor(161, 161, 170); // zinc-400
+    const codigo = document.getElementById('clase-codigo').innerText;
+    const splitCode = docPDF.splitTextToSize(codigo, 160);
+    docPDF.text(splitCode, 25, codeY + 10);
+
+    // 7. La Joya (Tip Técnico)
+    const joyaY = 205;
+    docPDF.setDrawColor(...accentColor);
+    docPDF.setLineWidth(1);
+    docPDF.line(20, joyaY, 20, joyaY + 20); // Línea roja lateral
+    
+    docPDF.setFont("helvetica", "italic");
+    docPDF.setTextColor(150, 150, 150);
+    docPDF.text("THE_CORE_LOGIC", 25, joyaY + 5);
+    
+    docPDF.setFont("helvetica", "bolditalic");
+    docPDF.setTextColor(...textColor);
+    const joya = document.getElementById('clase-joya').innerText;
+    const splitJoya = docPDF.splitTextToSize(joya, 160);
+    docPDF.text(splitJoya, 25, joyaY + 15);
+
+    // Guardar
+    docPDF.save(`ALGO_LAB_LOG_${claseId}.pdf`);
+};
     </script>
 </body>
 </html>
