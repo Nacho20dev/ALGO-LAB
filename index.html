@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ALGO::LAB | Algorithm Learning Platform</title>
+<title>ALGO::LAB | Bitácora de Algoritmos</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
 <script>
-tailwind.config = {
-darkMode:'class',
+tailwind.config = { 
+darkMode: 'class',
 theme:{
 extend:{
 colors:{
-javaRed:'#E7140D',
-javaBlue:'#0073B7'
+javaRed:"#E7140D",
+javaBlue:"#0073B7",
+javaBlack:"#0A0A0A"
 }
 }
 }
@@ -39,86 +38,184 @@ background-size:25px 25px;
 }
 
 .card-glass{
-background:rgba(255,255,255,0.03);
-backdrop-filter:blur(10px);
-border:1px solid rgba(255,255,255,0.1);
+background:rgba(255,255,255,.04);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,.08);
 transition:all .4s cubic-bezier(.175,.885,.32,1.275);
 }
 
-</style>
+.light .card-glass{
+background:rgba(255,255,255,.85);
+border:1px solid rgba(0,0,0,.05);
+}
 
+/* fondo degradado hero */
+
+.hero-gradient{
+background:
+radial-gradient(circle at 30% 20%, rgba(231,20,13,.35), transparent 50%),
+radial-gradient(circle at 70% 40%, rgba(0,115,183,.35), transparent 50%),
+radial-gradient(circle at 50% 90%, rgba(0,0,0,.9), transparent 60%);
+}
+
+/* relieve logo */
+
+.logo-relief{
+filter:
+drop-shadow(0 10px 25px rgba(0,0,0,.6))
+drop-shadow(0 0 20px rgba(231,20,13,.2));
+}
+
+@keyframes steam{
+0%{transform:translateY(0) scaleX(1);opacity:0}
+50%{opacity:.9}
+100%{transform:translateY(-22px) scaleX(1.5);opacity:0}
+}
+
+.steam-line{
+animation:steam 3s infinite ease-out;
+}
+
+</style>
 </head>
 
-<body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen bg-pattern overflow-x-hidden">
+<body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen bg-pattern overflow-x-hidden selection:bg-javaBlue selection:text-white">
 
-<!-- NAVBAR -->
+<!-- NAV -->
 
 <nav class="fixed top-0 w-full z-[100] p-4 md:p-6">
 
-<div class="max-w-7xl mx-auto backdrop-blur-xl bg-white/80 dark:bg-zinc-900/80 rounded-full px-6 py-3 flex items-center justify-between shadow-xl">
+<div class="max-w-7xl mx-auto backdrop-blur-2xl bg-white/80 dark:bg-zinc-900/80 rounded-3xl md:rounded-full px-6 py-3 flex items-center justify-between shadow-xl border border-black/5 dark:border-white/5">
 
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-4">
 
-<span class="font-black tracking-widest text-sm opacity-60">ALGO::LAB</span>
+<svg viewBox="0 0 128 128" class="w-8 h-8">
+
+<path d="M60 25c0 0 5-5 0-10M75 30c0 0 5-5 0-10"
+stroke="#E7140D"
+stroke-width="10"
+stroke-linecap="round"/>
+
+<path d="M40 55 C 40 45, 100 45, 100 55 
+M35 75 C 35 65, 105 65, 105 75 
+M30 95 C 30 85, 110 85, 110 95 
+M100 55 C 120 55, 120 85, 100 85"
+
+fill="none"
+class="stroke-javaBlue dark:stroke-white"
+stroke-width="10"
+stroke-linecap="round"/>
+
+</svg>
+
+<span class="hidden xs:block font-black uppercase text-[10px] tracking-[0.3em] opacity-50">
+Algo::Lab
+</span>
 
 </div>
 
-<button id="themeToggle" class="p-2 rounded-xl bg-zinc-200 dark:bg-zinc-800">
-
+<button id="themeToggle" class="p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:scale-110 transition-transform">
 <span class="dark:hidden">🌙</span>
 <span class="hidden dark:inline">☀️</span>
-
 </button>
 
 </div>
-
 </nav>
+
+<!-- MAIN -->
+
+<main class="max-w-7xl mx-auto px-4 md:px-8">
 
 <!-- HERO -->
 
-<header class="min-h-screen flex flex-col items-center justify-center text-center px-6">
+<header class="min-h-screen flex flex-col items-center justify-center pt-24 pb-12">
 
-<h1 class="text-6xl md:text-8xl font-black italic mb-6">
+<div class="w-full max-w-4xl p-10 md:p-16 rounded-[3rem] md:rounded-[5rem] card-glass hero-gradient text-center relative overflow-hidden">
 
-<span class="text-javaRed">ALGO</span>::LAB
+<!-- LOGO -->
+
+<div class="relative z-10 mb-10 logo-relief">
+
+<svg class="w-44 h-44 md:w-64 md:h-64 mx-auto" viewBox="0 0 128 128">
+
+<g stroke="#E7140D" stroke-width="4" stroke-linecap="round" fill="none">
+
+<path class="steam-line" d="M60 30c0 0 5-5 0-10"/>
+<path class="steam-line" style="animation-delay:.5s" d="M75 35c0 0 5-5 0-10"/>
+<path class="steam-line" style="animation-delay:1s" d="M90 30c0 0 5-5 0-10"/>
+
+</g>
+
+<g stroke="#0073B7" stroke-width="7" stroke-linecap="round" fill="none">
+
+<path d="M40 55 C 40 45, 100 45, 100 55 C 100 65, 40 65, 40 55"/>
+<path d="M35 75 C 35 65, 105 65, 105 75 C 105 85, 35 85, 35 75"/>
+<path d="M30 95 C 30 85, 110 85, 110 95 C 110 105, 30 105, 30 95"/>
+<path d="M100 55 C 120 55, 120 85, 100 85" stroke-width="6"/>
+
+</g>
+
+</svg>
+
+</div>
+
+<h1 class="text-5xl md:text-8xl lg:text-9xl font-black italic uppercase tracking-tighter leading-none mb-6">
+
+<span class="text-javaRed">Algo</span><br>
+<span class="text-javaBlue">Lab</span>
 
 </h1>
 
-<p class="max-w-2xl text-zinc-600 dark:text-zinc-400 text-lg">
+<p class="text-sm md:text-base font-bold uppercase tracking-[0.4em] opacity-40 italic">
 
-Plataforma personal para documentar el aprendizaje de algoritmos durante la cursada de la materia.
-Incluye apuntes de clase, resolución de ejercicios y organización de conceptos clave.
+Algorithm Learning Environment // Logs & Practice
 
 </p>
 
-<div class="flex gap-3 mt-6 flex-wrap justify-center">
+<p class="mt-6 max-w-xl mx-auto text-zinc-500 dark:text-zinc-400">
 
-<span class="px-4 py-1 bg-zinc-200 dark:bg-zinc-800 rounded-full text-sm">Java</span>
-<span class="px-4 py-1 bg-zinc-200 dark:bg-zinc-800 rounded-full text-sm">Algoritmos</span>
-<span class="px-4 py-1 bg-zinc-200 dark:bg-zinc-800 rounded-full text-sm">Tailwind</span>
-<span class="px-4 py-1 bg-zinc-200 dark:bg-zinc-800 rounded-full text-sm">Firebase</span>
+Plataforma personal para documentar el aprendizaje de algoritmos.
+Incluye apuntes de clase, resoluciones de ejercicios y organización
+de conceptos clave durante la cursada.
+
+</p>
 
 </div>
 
 </header>
 
-<!-- MODULOS -->
+<!-- MODULO -->
 
-<section class="max-w-7xl mx-auto px-6 py-16">
+<section id="modulo-vectores" class="py-12">
 
-<h2 class="text-3xl font-bold mb-10">Módulos de estudio</h2>
+<div class="grid grid-cols-1 gap-8">
 
-<div class="grid md:grid-cols-2 gap-8">
+<a href="pages/practicos.html?p=2"
 
-<a href="pages/practicos.html?p=2" class="card-glass p-10 rounded-3xl hover:scale-[1.02]">
+class="card-glass p-8 md:p-12 rounded-[2.5rem] md:rounded-[4rem] group flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-javaRed/20 hover:border-javaRed/50 transition-all">
 
-<h3 class="text-3xl font-bold mb-3">Vectores & Sorting</h3>
+<div class="space-y-4">
 
-<p class="opacity-60">
+<div class="flex items-center gap-2">
+<div class="w-10 h-1 bg-javaRed"></div>
+<span class="text-javaRed font-black text-xs uppercase tracking-widest">
+Logic.Core
+</span>
+</div>
 
-Ejercicios y prácticas sobre estructuras de datos básicas y algoritmos de ordenamiento.
+<h2 class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter group-hover:translate-x-2 transition-transform">
 
-</p>
+Vectores & Sorting
+
+</h2>
+
+</div>
+
+<div class="text-7xl md:text-9xl font-black italic text-zinc-100 dark:text-zinc-900 group-hover:text-javaRed/20 transition-colors">
+
+01
+
+</div>
 
 </a>
 
@@ -126,56 +223,27 @@ Ejercicios y prácticas sobre estructuras de datos básicas y algoritmos de orde
 
 </section>
 
-<!-- CLASES -->
+<!-- TIMELINE -->
 
-<section class="max-w-7xl mx-auto px-6 py-16">
+<section id="timeline-clases" class="py-20">
 
-<h2 class="text-3xl font-bold mb-10">Diario de clases</h2>
+<div class="flex items-center gap-4 mb-12 opacity-30 text-zinc-400">
 
-<div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+<span class="text-[10px] font-black uppercase tracking-[0.5em]">
+
+Logs_System
+
+</span>
+
+<div class="flex-1 h-[1px] bg-current"></div>
+
+</div>
+
+<div id="notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8"></div>
 
 </section>
 
-<!-- TECNOLOGIAS -->
-
-<section class="max-w-7xl mx-auto px-6 py-16">
-
-<h2 class="text-3xl font-bold mb-8">Tecnologías utilizadas</h2>
-
-<div class="grid md:grid-cols-3 gap-6">
-
-<div class="card-glass p-6 rounded-2xl">
-
-<h4 class="font-bold mb-2">Frontend</h4>
-<p class="opacity-60">HTML, TailwindCSS, JavaScript</p>
-
-</div>
-
-<div class="card-glass p-6 rounded-2xl">
-
-<h4 class="font-bold mb-2">Backend / Data</h4>
-<p class="opacity-60">Firebase Firestore</p>
-
-</div>
-
-<div class="card-glass p-6 rounded-2xl">
-
-<h4 class="font-bold mb-2">Deploy</h4>
-<p class="opacity-60">GitHub Pages</p>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- FOOTER -->
-
-<footer class="text-center py-12 opacity-50">
-
-Proyecto desarrollado por Ignacio • ALGO::LAB
-
-</footer>
+</main>
 
 <script type="module">
 
@@ -183,39 +251,38 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/fireba
 import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 import { diarioClases } from './js/data/apuntes.js';
 
-const firebaseConfig = {
-
+const firebaseConfig={
 apiKey:"AIzaSyACn1WsQF2--cd_NT71D1GplZTuc2qu8cI",
 authDomain:"algo-lab-6ebad.firebaseapp.com",
 projectId:"algo-lab-6ebad",
 storageBucket:"algo-lab-6ebad.firebasestorage.app",
 messagingSenderId:"141165248345",
 appId:"1:141165248345:web:23dad0ce60ca1d8e449648"
-
 };
 
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
-const themeToggle=document.getElementById("themeToggle");
+const themeToggle=document.getElementById('themeToggle');
 
 const applyTheme=()=>{
-const saved=localStorage.getItem("theme")||"dark";
-document.documentElement.classList.toggle("dark",saved==="dark");
+const saved=localStorage.getItem('theme')||'dark';
+document.documentElement.classList.toggle('dark',saved==='dark');
 };
 
 themeToggle.onclick=()=>{
-const isDark=document.documentElement.classList.toggle("dark");
-localStorage.setItem("theme",isDark?"dark":"light");
+const isDark=document.documentElement.classList.toggle('dark');
+localStorage.setItem('theme',isDark?'dark':'light');
 };
 
 applyTheme();
 
 async function render(){
 
-const grid=document.getElementById("notes-grid");
+const grid=document.getElementById('notes-grid');
 
-grid.innerHTML='<p class="col-span-full text-center opacity-40 animate-pulse">Loading class notes...</p>';
+grid.innerHTML=
+'<p class="col-span-full text-center opacity-30 italic animate-pulse">Loading class notes...</p>';
 
 try{
 
@@ -234,44 +301,52 @@ cloudNotes.forEach(cn=>notesMap.set(cn.id,cn));
 
 const allNotes=Array.from(notesMap.values()).sort((a,b)=>b.id-a.id);
 
-grid.innerHTML="";
+grid.innerHTML='';
 
 const maxId=allNotes.length>0?Math.max(...allNotes.map(n=>n.id)):0;
 
 const nextId=maxId+1;
 
-const addCard=document.createElement("a");
+const addCard=document.createElement('a');
 
 addCard.href=`./pages/apuntes.html?id=${nextId}&mode=edit`;
 
-addCard.className="card-glass p-10 rounded-3xl flex items-center justify-center border-dashed border-2 opacity-60 hover:opacity-100";
+addCard.className="card-glass p-10 rounded-[2.5rem] flex items-center justify-center border-dashed border-2 border-zinc-300 dark:border-zinc-800 text-zinc-400 hover:border-javaRed hover:text-javaRed hover:scale-105 transition-all min-h-[250px]";
 
-addCard.innerHTML="<span class='text-5xl'>+</span>";
+addCard.innerHTML=`<span class="text-6xl font-light">+</span>`;
 
 grid.appendChild(addCard);
 
 allNotes.forEach(clase=>{
 
-const card=document.createElement("a");
+const card=document.createElement('a');
 
 card.href=`./pages/apuntes.html?id=${clase.id}`;
 
-card.className="card-glass p-6 rounded-2xl";
+card.className="card-glass p-8 rounded-[2.5rem] group hover:scale-[1.02] flex flex-col justify-between min-h-[250px]";
 
 card.innerHTML=`
 
-<div class="flex justify-between text-xs opacity-50 mb-3">
+<div>
 
-<span>${clase.fecha || "LOG"}</span>
-<span>#${String(clase.id).padStart(2,'0')}</span>
+<div class="flex justify-between mb-6 text-[9px] font-black uppercase opacity-40">
+
+<span>${clase.fecha||'LOG'}</span>
+<span class="text-javaRed">#${String(clase.id).padStart(2,'0')}</span>
 
 </div>
 
-<h4 class="font-bold mb-3">${clase.titulo}</h4>
+<h4 class="text-lg font-black uppercase italic leading-tight group-hover:text-javaRed transition-colors">
 
-<div class="flex gap-2 flex-wrap">
+${clase.titulo}
 
-${(clase.tags || []).slice(0,2).map(t=>`<span class="text-xs bg-zinc-200 dark:bg-zinc-800 px-2 py-1 rounded">${t}</span>`).join("")}
+</h4>
+
+</div>
+
+<div class="pt-6 mt-6 border-t border-white/5 flex flex-wrap gap-2">
+
+${(clase.tags||[]).slice(0,2).map(t=>`<span class="text-[8px] font-bold text-javaBlue uppercase">${t}</span>`).join('')}
 
 </div>
 
@@ -285,7 +360,7 @@ grid.appendChild(card);
 
 console.error(e);
 
-grid.innerHTML='<p class="text-red-500">Error cargando datos</p>';
+grid.innerHTML='<p class="col-span-full text-center text-javaRed font-black">ERROR_DB_SYNC_FAILED</p>';
 
 }
 
