@@ -293,19 +293,41 @@
     currentY += (splitResumen.length * 6) + 20;
 
     // 6. Bloque de Código (Auto-ajustable)
+        // 6. Bloque de Código (Auto-ajustable con Salto de Página)
     const codigo = document.getElementById('clase-codigo').innerText;
     docPDF.setFont("courier", "normal");
     docPDF.setFontSize(9);
+    const lineHeight = 5;
     const splitCode = docPDF.splitTextToSize(codigo, contentWidth - 10);
-    const codeBlockHeight = (splitCode.length * 5) + 15;
-
-    checkPageBreak(codeBlockHeight); // Verificamos si entra el código o vamos a otra página
-
-    docPDF.setFillColor(9, 9, 11); // Fondo oscuro
-    docPDF.roundedRect(margin, currentY, contentWidth, codeBlockHeight, 4, 4, 'F');
+    
     docPDF.setTextColor(161, 161, 170);
-    docPDF.text(splitCode, margin + 5, currentY + 10);
-    currentY += codeBlockHeight + 20;
+
+    splitCode.forEach((line) => {
+        // Altura necesaria: línea actual + margen inferior de la caja
+        const neededHeight = lineHeight + 10; 
+        
+        if (currentY + neededHeight > pageHeight - margin) {
+            // Dibujamos el final de la caja actual antes de saltar
+            docPDF.setFillColor(9, 9, 11);
+            // Si quieres que la caja se vea continua, no cerramos con roundedRect aquí
+            
+            docPDF.addPage();
+            docPDF.setFillColor(...bgColor);
+            docPDF.rect(0, 0, pageWidth, pageHeight, 'F');
+            currentY = margin;
+        }
+
+        // Dibujar fondo de línea (Caja negra continua)
+        docPDF.setFillColor(9, 9, 11);
+        docPDF.rect(margin, currentY, contentWidth, lineHeight + 2, 'F');
+        
+        // Dibujar el texto de la línea
+        docPDF.text(line, margin + 5, currentY + 5);
+        currentY += lineHeight;
+    });
+
+    currentY += 15; // Espacio después del bloque de código
+
 
     // 7. La Joya (Tip Técnico)
     const joya = document.getElementById('clase-joya').innerText;
