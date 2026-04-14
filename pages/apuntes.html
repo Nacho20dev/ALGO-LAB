@@ -220,95 +220,124 @@
             }
         };
 
-        // 8. PDF
-      // 8. PDF DRAWING ENGINE (Texto real, no captura)
-document.getElementById('btn-pdf-pro').onclick = () => {
+        
+ //PDF
+
+   document.getElementById('btn-pdf-pro').onclick = () => {
     const docPDF = new jsPDF();
     const isDark = document.documentElement.classList.contains('dark');
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
     
-    // Configuración de Colores según el tema
-    const bgColor = isDark ? [24, 24, 27] : [250, 250, 250]; // zinc-950 o zinc-50
+    let currentY = 20; // Cursor dinámico de posición vertical
+
+    const bgColor = isDark ? [24, 24, 27] : [250, 250, 250];
     const textColor = isDark ? [255, 255, 255] : [24, 24, 27];
-    const accentColor = [231, 20, 13]; // javaRed (#E7140D)
+    const accentColor = [231, 20, 13];
 
-    // 1. Fondo de página
+    // Función auxiliar para verificar si necesitamos una nueva página
+    const checkPageBreak = (neededHeight) => {
+        if (currentY + neededHeight > pageHeight - margin) {
+            docPDF.addPage();
+            docPDF.setFillColor(...bgColor);
+            docPDF.rect(0, 0, pageWidth, pageHeight, 'F');
+            currentY = margin;
+            return true;
+        }
+        return false;
+    };
+
+    // 1. Fondo inicial
     docPDF.setFillColor(...bgColor);
-    docPDF.rect(0, 0, 210, 297, 'F');
+    docPDF.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    // 2. Cabecera - Logo / ID
+    // 2. Cabecera
     docPDF.setFont("helvetica", "bold");
     docPDF.setFontSize(10);
     docPDF.setTextColor(...accentColor);
-    const idText = document.getElementById('clase-id').innerText;
-    docPDF.text(idText, 20, 20);
-
-    // Línea decorativa
+    docPDF.text(document.getElementById('clase-id').innerText, margin, currentY);
     docPDF.setDrawColor(isDark ? 60 : 200);
-    docPDF.line(30, 19, 150, 19);
-
-    // Fecha
+    docPDF.line(margin + 12, currentY - 1, margin + 130, currentY - 1);
+    
     docPDF.setTextColor(150, 150, 150);
-    docPDF.setFontSize(8);
-    const fecha = document.getElementById('clase-fecha').innerText;
-    docPDF.text(fecha, 160, 20);
+    docPDF.text(document.getElementById('clase-fecha').innerText, 160, currentY);
+    currentY += 20;
 
-    // 3. Título Principal
+    // 3. Título (Dinámico)
     docPDF.setFontSize(32);
     docPDF.setTextColor(...textColor);
-    docPDF.setFont("helvetica", "bold");
     const titulo = document.getElementById('clase-titulo').innerText.toUpperCase();
-    // Dividir título si es muy largo
-    const splitTitle = docPDF.splitTextToSize(titulo, 170);
-    docPDF.text(splitTitle, 20, 40);
+    const splitTitle = docPDF.splitTextToSize(titulo, contentWidth);
+    docPDF.text(splitTitle, margin, currentY);
+    currentY += (splitTitle.length * 12) + 5;
 
     // 4. Tags
     docPDF.setFontSize(9);
-    docPDF.setTextColor(0, 115, 183); // javaBlue
-    const tags = document.getElementById('clase-tags').innerText;
-    docPDF.text(tags, 20, 60);
+    docPDF.setTextColor(0, 115, 183);
+    docPDF.text(document.getElementById('clase-tags').innerText, margin, currentY);
+    currentY += 15;
 
-    // 5. Resumen (Technical Briefing)
+    // 5. Resumen
     docPDF.setTextColor(150, 150, 150);
-    docPDF.text("TECHNICAL_BRIEFING", 20, 75);
+    docPDF.text("TECHNICAL_BRIEFING", margin, currentY);
+    currentY += 10;
     
     docPDF.setTextColor(...textColor);
     docPDF.setFont("helvetica", "normal");
-    docPDF.setFontSize(12);
+    docPDF.setFontSize(11);
     const resumen = document.getElementById('clase-resumen').innerText;
-    const splitResumen = docPDF.splitTextToSize(resumen, 170);
-    docPDF.text(splitResumen, 20, 85);
+    const splitResumen = docPDF.splitTextToSize(resumen, contentWidth);
+    docPDF.text(splitResumen, margin, currentY);
+    currentY += (splitResumen.length * 6) + 20;
 
-    // 6. Bloque de Código (Simulando la caja oscura)
-    const codeY = 110;
-    docPDF.setFillColor(9, 9, 11); // Fondo código (zinc-950)
-    docPDF.roundedRect(20, codeY, 170, 80, 5, 5, 'F');
-    
-    docPDF.setFont("courier", "normal");
-    docPDF.setFontSize(10);
-    docPDF.setTextColor(161, 161, 170); // zinc-400
+    // 6. Bloque de Código (Auto-ajustable)
     const codigo = document.getElementById('clase-codigo').innerText;
-    const splitCode = docPDF.splitTextToSize(codigo, 160);
-    docPDF.text(splitCode, 25, codeY + 10);
+    docPDF.setFont("courier", "normal");
+    docPDF.setFontSize(9);
+    const splitCode = docPDF.splitTextToSize(codigo, contentWidth - 10);
+    const codeBlockHeight = (splitCode.length * 5) + 15;
+
+    checkPageBreak(codeBlockHeight); // Verificamos si entra el código o vamos a otra página
+
+    docPDF.setFillColor(9, 9, 11); // Fondo oscuro
+    docPDF.roundedRect(margin, currentY, contentWidth, codeBlockHeight, 4, 4, 'F');
+    docPDF.setTextColor(161, 161, 170);
+    docPDF.text(splitCode, margin + 5, currentY + 10);
+    currentY += codeBlockHeight + 20;
 
     // 7. La Joya (Tip Técnico)
-    const joyaY = 205;
+    const joya = document.getElementById('clase-joya').innerText;
+    const splitJoya = docPDF.splitTextToSize(joya, contentWidth - 15);
+    const joyaHeight = (splitJoya.length * 7) + 15;
+
+    checkPageBreak(joyaHeight);
+
     docPDF.setDrawColor(...accentColor);
-    docPDF.setLineWidth(1);
-    docPDF.line(20, joyaY, 20, joyaY + 20); // Línea roja lateral
+    docPDF.setLineWidth(1.5);
+    docPDF.line(margin, currentY, margin, currentY + joyaHeight - 5);
     
     docPDF.setFont("helvetica", "italic");
     docPDF.setTextColor(150, 150, 150);
-    docPDF.text("THE_CORE_LOGIC", 25, joyaY + 5);
+    docPDF.setFontSize(8);
+    docPDF.text("THE_CORE_LOGIC", margin + 5, currentY);
     
     docPDF.setFont("helvetica", "bolditalic");
     docPDF.setTextColor(...textColor);
-    const joya = document.getElementById('clase-joya').innerText;
-    const splitJoya = docPDF.splitTextToSize(joya, 160);
-    docPDF.text(splitJoya, 25, joyaY + 15);
+    docPDF.setFontSize(14);
+    docPDF.text(splitJoya, margin + 5, currentY + 10);
 
-    // Guardar
     docPDF.save(`ALGO_LAB_LOG_${claseId}.pdf`);
 };
+
+    
+    
+    
+    
+    
+    
+ 
     </script>
 </body>
 </html>
