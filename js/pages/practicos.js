@@ -50,64 +50,66 @@ let currentPId = '2';
 /**
  * Carga la información de un ejercicio específico y configura la UI.
  */
+
 function loadExercise(ex) {
     if (!ex) return;
 
-    // 1. Mapeo de textos a la interfaz
+    // 1. MAPEADO DE TEXTOS
+    // Usamos cortocircuitos (||) para soportar tanto el formato de Vectores como el de Listas
     const mappings = {
         'ex-title': ex.titulo,
         'ex-letra': ex.letra,
-        'ex-code': ex.solucionJava || ex.codigo,
-        'ex-pre': ex.pre,
-        'ex-pos': ex.pos,
-        'ex-tip': ex.tip,
-        'ex-theory': ex.teoria,
-        'complexity-badge': ex.complexity || ex.complejidad
+        'ex-code': ex.solucionJava || ex.codigo || "// Sin código disponible",
+        'ex-pre': ex.pre || "Lista inicializada (posiblemente vacía).",
+        'ex-pos': ex.pos || "Estructura actualizada según el método.",
+        'ex-tip': ex.tip || "Verificar punteros y el caso borde de nodo inicial null.",
+        'ex-theory': ex.teoria || "Estructuras de Datos Dinámicas",
+        'complexity-badge': ex.complexity || "O(n)"
     };
 
     Object.entries(mappings).forEach(([id, val]) => {
         const el = document.getElementById(id);
         if (el) {
-            if (id === 'ex-code') el.textContent = val || "// Solución no disponible";
-            else el.innerText = val || "N/A";
+            if (id === 'ex-code') el.textContent = val;
+            else el.innerText = val;
         }
     });
 
-    // 2. Control de visualización según el tipo de práctico
+    // 2. CONFIGURACIÓN DE ELEMENTOS UI
     const arrayVis = document.getElementById('array-container');
     const stackVis = document.getElementById('stack-container');
     const inputGroup = document.getElementById('input-group');
     const label = document.getElementById('visualizer-label');
     const btnRun = document.getElementById('btn-run');
 
-    // Reset de estados comunes
+    // Reset general de visibilidad
     arrayVis.classList.add('hidden');
     stackVis.classList.add('hidden');
     inputGroup.classList.add('hidden');
-    btnRun.disabled = true;
-    btnRun.classList.add('opacity-20');
+
+    // --- LÓGICA POR MÓDULO ---
 
     if (currentPId === '3') {
         // MODO RECURSIVIDAD
         stackVis.classList.remove('hidden');
         label.innerText = "STACK_REFERENCE_VIEW";
+        btnRun.disabled = true;
+        btnRun.classList.add('opacity-20');
         btnRun.innerText = "NO_INTERACTIVE_MODE";
-        
-        stackVis.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-full text-zinc-500 italic">
-                <p class="text-xs uppercase tracking-widest font-black">Recursion Analysis</p>
-                <p class="text-[10px]">Visualización lógica en desarrollo.</p>
-            </div>`;
     } 
     else if (currentPId === '4') {
-        // MODO LISTAS SIMPLES
+        // MODO LISTAS (Tu nuevo práctico)
         arrayVis.classList.remove('hidden');
         label.innerText = "LINKED_STRUCTURE_VIEW";
+        btnRun.disabled = true;
+        btnRun.classList.add('opacity-20');
         btnRun.innerText = "LOGICAL_VIEW_ONLY";
+        
+        // Llamamos a la función que dibuja los nodos (aseguráte de tenerla al final del archivo)
         renderListStatic(arrayVis); 
     } 
     else {
-        // MODO VECTORES (DEFAULT)
+        // MODO VECTORES (DEFAULT / P2)
         arrayVis.classList.remove('hidden');
         inputGroup.classList.remove('hidden');
         label.innerText = "HEAP_MEMORY_VIEW";
@@ -119,12 +121,13 @@ function loadExercise(ex) {
             visualizer.render(ex.v_ejemplo);
             btnRun.onclick = () => runSortAnimation(ex);
         } else {
-            arrayVis.innerHTML = '<p class="text-zinc-500 italic text-xs">Ejercicio procedimental.</p>';
+            arrayVis.innerHTML = '<p class="text-zinc-500 italic text-xs">Vista lógica no disponible para este ejercicio.</p>';
             btnRun.disabled = true;
             btnRun.classList.add('opacity-20');
         }
     }
 }
+       
 
 /**
  * Renderiza el menú lateral con la lista de ejercicios.
