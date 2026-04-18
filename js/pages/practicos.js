@@ -7,7 +7,8 @@ let currentPId = '2';
 /**
  * Inicializa el módulo cargando los datos dinámicamente según el ID del práctico.
  */
-async function init() {
+
+    async function init() {
     const params = new URLSearchParams(window.location.search);
     currentPId = params.get('p') || '2';
 
@@ -15,8 +16,25 @@ async function init() {
         const modulePath = `../data/practico${currentPId}.js`;
         const module = await import(modulePath);
         
-        // Soporte para múltiples nombres de exportación
-        currentData = module.practicoData || module.practico3Data || module.practico4Data || [];
+        let rawData = module.practicoData || module.practico3Data || module.practico4Data || [];
+
+        // --- SOLUCIÓN PARA PRÁCTICO 4 ---
+        // Si la data es un Objeto (como mandaste), la convertimos a Array para el menú
+        if (!Array.isArray(rawData)) {
+            currentData = Object.entries(rawData).flatMap(([key, ej]) => {
+                // Mapeamos los sub-items (1a, 1b...) como si fueran ejercicios individuales
+                return ej.items.map(item => ({
+                    id: item.id,
+                    titulo: `${ej.titulo}: ${item.tag}`,
+                    letra: `Implementación de ${item.tag} (Java)`,
+                    solucionJava: `// ITERATIVO\n${item.iter}\n\n// RECURSIVO\n${item.rec}`,
+                    teoria: ej.titulo,
+                    complexity: "O(n)"
+                }));
+            });
+        } else {
+            currentData = rawData;
+        }
 
         renderMenu();
         if (currentData.length > 0) loadExercise(currentData[0]);
@@ -24,9 +42,10 @@ async function init() {
     } catch (err) {
         console.error("❌ Error al cargar datos:", err);
         const nav = document.getElementById('exercise-nav');
-        if (nav) nav.innerHTML = '<p class="text-[10px] text-javaRed p-4">ERROR_LOADING_MODULE</p>';
+        if (nav) nav.innerHTML = '<p class="text-[10px] text-javaRed p-4">ERROR_DATA_STRUCTURE</p>';
     }
 }
+    
 
 /**
  * Carga la información de un ejercicio específico y configura la UI.
