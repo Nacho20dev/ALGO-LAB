@@ -1,4 +1,4 @@
-export const practico4Data = {
+export const practicoData = {
     ejercicio1: {
         titulo: "Operaciones Básicas",
         items: [
