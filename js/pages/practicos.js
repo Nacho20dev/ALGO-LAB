@@ -4,8 +4,10 @@ const visualizer = new ArrayVisualizer('array-container');
 let currentData = [];
 let currentPId = '2'; 
 
-
-    async function init() {
+/**
+ * Inicializa el módulo cargando los datos dinámicamente según el ID del práctico.
+ */
+async function init() {
     const params = new URLSearchParams(window.location.search);
     currentPId = params.get('p') || '2';
 
@@ -13,7 +15,7 @@ let currentPId = '2';
         const modulePath = `../data/practico${currentPId}.js`;
         const module = await import(modulePath);
         
-        // Normalización de la fuente de datos
+        // Soporte para múltiples nombres de exportación
         currentData = module.practicoData || module.practico3Data || module.practico4Data || [];
 
         renderMenu();
@@ -21,19 +23,22 @@ let currentPId = '2';
 
     } catch (err) {
         console.error("❌ Error al cargar datos:", err);
+        const nav = document.getElementById('exercise-nav');
+        if (nav) nav.innerHTML = '<p class="text-[10px] text-javaRed p-4">ERROR_LOADING_MODULE</p>';
     }
 }
 
-
- 
+/**
+ * Carga la información de un ejercicio específico y configura la UI.
+ */
 function loadExercise(ex) {
     if (!ex) return;
 
-    // Renderizado de textos (Común a todos los prácticos)
+    // 1. Mapeo de textos a la interfaz
     const mappings = {
         'ex-title': ex.titulo,
         'ex-letra': ex.letra,
-        'ex-code': ex.solucionJava || ex.codigo, // Soporta ambas variantes
+        'ex-code': ex.solucionJava || ex.codigo,
         'ex-pre': ex.pre,
         'ex-pos': ex.pos,
         'ex-tip': ex.tip,
@@ -44,116 +49,73 @@ function loadExercise(ex) {
     Object.entries(mappings).forEach(([id, val]) => {
         const el = document.getElementById(id);
         if (el) {
-            if (id === 'ex-code') el.textContent = val || "// Sin solución";
+            if (id === 'ex-code') el.textContent = val || "// Solución no disponible";
             else el.innerText = val || "N/A";
         }
     });
 
-    // Control de UI según el módulo
+    // 2. Control de visualización según el tipo de práctico
     const arrayVis = document.getElementById('array-container');
     const stackVis = document.getElementById('stack-container');
     const inputGroup = document.getElementById('input-group');
     const label = document.getElementById('visualizer-label');
     const btnRun = document.getElementById('btn-run');
 
+    // Reset de estados comunes
+    arrayVis.classList.add('hidden');
+    stackVis.classList.add('hidden');
+    inputGroup.classList.add('hidden');
+    btnRun.disabled = true;
+    btnRun.classList.add('opacity-20');
+
     if (currentPId === '3') {
         // MODO RECURSIVIDAD
-        arrayVis.classList.add('hidden');
         stackVis.classList.remove('hidden');
-        inputGroup.classList.add('hidden');
         label.innerText = "STACK_REFERENCE_VIEW";
+        btnRun.innerText = "NO_INTERACTIVE_MODE";
         
         stackVis.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-full text-zinc-600 dark:text-zinc-500 italic">
-                <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <p class="text-xs uppercase tracking-widest font-black">Análisis de Recursión</p>
-                <p class="text-[10px]">Consulta el código en el panel lateral.</p>
-            </div>
-        `;
-        
-        btnRun.classList.add('opacity-20', 'cursor-not-allowed');
-        btnRun.disabled = true;
-        btnRun.innerText = "NO_INTERACTIVE_MODE";
-
-    } else if (currentPId === '4') {
-        // MODO LISTAS (Inyectado)
+            <div class="flex flex-col items-center justify-center h-full text-zinc-500 italic">
+                <p class="text-xs uppercase tracking-widest font-black">Recursion Analysis</p>
+                <p class="text-[10px]">Visualización lógica en desarrollo.</p>
+            </div>`;
+    } 
+    else if (currentPId === '4') {
+        // MODO LISTAS SIMPLES
         arrayVis.classList.remove('hidden');
-        stackVis.classList.add('hidden');
-        inputGroup.classList.add('hidden');
         label.innerText = "LINKED_STRUCTURE_VIEW";
-        
-        renderListStatic(arrayVis); 
-
-        btnRun.classList.add('opacity-20', 'cursor-not-allowed');
-        btnRun.disabled = true;
         btnRun.innerText = "LOGICAL_VIEW_ONLY";
-
-    } else {
-        // MODO VECTORES
+        renderListStatic(arrayVis); 
+    } 
+    else {
+        // MODO VECTORES (DEFAULT)
         arrayVis.classList.remove('hidden');
-        stackVis.classList.add('hidden');
         inputGroup.classList.remove('hidden');
         label.innerText = "HEAP_MEMORY_VIEW";
-        btnRun.classList.remove('opacity-20', 'cursor-not-allowed');
         btnRun.disabled = false;
+        btnRun.classList.remove('opacity-20');
         btnRun.innerText = "Compile & Execute";
 
         if (ex.v_ejemplo) {
             visualizer.render(ex.v_ejemplo);
             btnRun.onclick = () => runSortAnimation(ex);
         } else {
-            arrayVis.innerHTML = '<p class="text-zinc-500 italic text-xs">Ejercicio de lógica procedimental.</p>';
+            arrayVis.innerHTML = '<p class="text-zinc-500 italic text-xs">Ejercicio procedimental.</p>';
             btnRun.disabled = true;
+            btnRun.classList.add('opacity-20');
         }
     }
 }
 
-        
-    
-        
-
-
-// TU LÓGICA DE ANIMACIÓN (INTACTA)
-async function runSortAnimation(ex) {
-    const btn = document.getElementById('btn-run');
-    btn.disabled = true;
-    btn.innerText = "SIMULANDO...";
-
-    let arr = [...ex.v_ejemplo];
-    let n = arr.length;
-
-    for (let i = 0; i < n - 1; i++) {
-        let swapped = false;
-        visualizer.render(arr, { i, message: `Pasada ${i + 1}` });
-        await new Promise(r => setTimeout(r, 600));
-
-        for (let j = 0; j < n - i - 1; j++) {
-            visualizer.render(arr, { i, j, jPlus1: j + 1 });
-            visualizer.highlight(j, j + 1, 'compare');
-            await new Promise(r => setTimeout(r, 400));
-
-            if (arr[j] > arr[j + 1]) {
-                visualizer.highlight(j, j + 1, 'swap');
-                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-                await new Promise(r => setTimeout(r, 300));
-                visualizer.render(arr, { i, j, jPlus1: j + 1 });
-                swapped = true;
-            }
-            visualizer.highlight(j, j + 1, 'reset');
-        }
-        if (ex.id === 11 && !swapped) break;
-    }
-    visualizer.render(arr, { message: "¡Completado!" });
-    btn.disabled = false;
-    btn.innerText = "Compile & Execute";
-}
-
+/**
+ * Renderiza el menú lateral con la lista de ejercicios.
+ */
 function renderMenu() {
     const nav = document.getElementById('exercise-nav');
+    if (!nav) return;
     nav.innerHTML = '';
-    currentData.forEach((ex, idx) => {
+
+    currentData.forEach((ex) => {
         const btn = document.createElement('button');
         btn.className = "w-full text-left p-3 rounded-xl transition-all text-sm font-medium hover:bg-white/5 border border-transparent mb-1 group flex items-center gap-3";
         
@@ -169,33 +131,63 @@ function renderMenu() {
         };
         nav.appendChild(btn);
     });
+}
 
+/**
+ * Simulación visual de una lista encadenada.
+ */
 function renderListStatic(container) {
     container.innerHTML = `
-        <div class="flex items-center gap-2 p-4 animate-fade-in overflow-x-auto">
-            <div class="flex flex-col items-center mr-2">
-                <span class="text-[8px] font-black text-javaRed uppercase mb-1">Head</span>
-                <div class="w-8 h-8 rounded-full border-2 border-javaRed flex items-center justify-center">
+        <div class="flex items-center gap-2 p-6 overflow-x-auto w-full justify-center animate-fade-in">
+            <div class="flex flex-col items-center mr-4">
+                <span class="text-[8px] font-black text-javaRed uppercase mb-1 tracking-widest">Head</span>
+                <div class="w-8 h-8 rounded-full border-2 border-javaRed flex items-center justify-center shadow-[0_0_10px_rgba(231,20,13,0.3)]">
                     <div class="w-2 h-2 bg-javaRed rounded-full"></div>
                 </div>
             </div>
-            ${[10, 20, 30].map((val, idx) => `
+            ${[10, 25, 40].map((val) => `
                 <div class="flex items-center">
-                    <div class="w-16 h-12 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-900 flex flex-col shadow-lg">
-                        <div class="flex-1 flex items-center justify-center font-bold text-xs">${val}</div>
-                        <div class="h-3 bg-zinc-100 dark:bg-white/5 text-[6px] flex items-center justify-center opacity-40 font-mono italic">next</div>
+                    <div class="w-16 h-12 rounded-xl border border-white/10 bg-white/5 flex flex-col shadow-xl">
+                        <div class="flex-1 flex items-center justify-center font-bold text-xs text-zinc-200">${val}</div>
+                        <div class="h-3 bg-white/10 text-[6px] flex items-center justify-center opacity-40 font-mono italic">next</div>
                     </div>
-                    <div class="px-2 text-javaBlue font-black">→</div>
+                    <div class="px-3 text-javaBlue font-black animate-pulse">→</div>
                 </div>
             `).join('')}
-            <div class="text-[9px] font-black opacity-30 italic">NULL</div>
+            <div class="text-[9px] font-black opacity-30 italic text-zinc-500 uppercase">NULL</div>
         </div>
     `;
 }
 
+/**
+ * Lógica de animación para algoritmos de ordenamiento (PId 2).
+ */
+async function runSortAnimation(ex) {
+    const btn = document.getElementById('btn-run');
+    btn.disabled = true;
+    btn.innerText = "SIMULANDO...";
 
+    let arr = [...ex.v_ejemplo];
+    let n = arr.length;
 
+    for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            visualizer.render(arr, { i, j, jPlus1: j + 1 });
+            visualizer.highlight(j, j + 1, 'compare');
+            await new Promise(r => setTimeout(r, 400));
 
+            if (arr[j] > arr[j + 1]) {
+                visualizer.highlight(j, j + 1, 'swap');
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                await new Promise(r => setTimeout(r, 300));
+                visualizer.render(arr, { i, j, jPlus1: j + 1 });
+            }
+            visualizer.highlight(j, j + 1, 'reset');
+        }
+    }
+    visualizer.render(arr, { message: "¡Completado!" });
+    btn.disabled = false;
+    btn.innerText = "Compile & Execute";
 }
 
 document.addEventListener('DOMContentLoaded', init);
